@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avaliação de Marcha e Equilíbrio</title>
+<style>
+  :root{
+    --bg: #EDF0EA;
+    --panel: #FFFFFF;
+    --ink: #1E2A28;
+    --ink-soft: #4B5750;
+    --line: #CBD3C4;
+    --line-soft: #DEE3D8;
+    --accent: #3F6B52;
+    --accent-soft: #E4ECE5;
+    --amber: #B98241;
+    --amber-soft: #F3E7D5;
+    --brick: #A34A3D;
+    --serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --sans: ui-sans-serif, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding: 32px 16px;
+  }
+  .app{
+    width: 100%;
+    max-width: 780px;
+  }
+
+  /* ---------- Home ---------- */
+  .home-head{
+    margin-bottom: 28px;
+  }
+  .home-head h1{
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 30px;
+    line-height: 1.25;
+    margin: 0 0 8px 0;
+    color: var(--ink);
+  }
+  .home-head p{
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 15px;
+    max-width: 52ch;
+    line-height: 1.5;
+  }
+  .scale-grid{
+    display:grid;
+    gap: 14px;
+  }
+  .scale-card{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px 22px;
+    text-align: left;
+    cursor: pointer;
+    display:flex;
+    flex-direction:column;
+    gap: 6px;
+    transition: border-color .15s ease, transform .1s ease;
+    font-family: var(--sans);
+  }
+  .scale-card:hover{ border-color: var(--accent); }
+  .scale-card:active{ transform: scale(0.99); }
+  .scale-card h2{
+    font-family: var(--serif);
+    font-size: 19px;
+    font-weight: 500;
+    margin: 0;
+    color: var(--ink);
+  }
+  .scale-card .meta{
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .scale-card .desc{
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.45;
+  }
+  .scale-card.disabled{
+    cursor: default;
+    opacity: 0.6;
+    border-style: dashed;
+  }
+  .scale-card.disabled:hover{ border-color: var(--line); }
+
+  /* ---------- Flow header ---------- */
+  .flow-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom: 18px;
+    gap: 12px;
+  }
+  .flow-title{
+    font-family: var(--serif);
+    font-size: 17px;
+    color: var(--ink);
+  }
+  .flow-count{
+    font-size: 13px;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+  .progress-track{
+    height: 4px;
+    background: var(--line-soft);
+    border-radius: 2px;
+    overflow:hidden;
+    margin-bottom: 30px;
+  }
+  .progress-fill{
+    height:100%;
+    background: var(--accent);
+    transition: width .25s ease;
+  }
+
+  /* ---------- Question card ---------- */
+  .q-card{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 26px 26px 22px 26px;
+  }
+  .q-section-tag{
+    font-size: 12.5px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .q-name{
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 500;
+    margin: 0 0 10px 0;
+    color: var(--ink);
+  }
+  .q-instructions{
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    margin: 0 0 22px 0;
+    font-style: italic;
+    border-left: 2px solid var(--line);
+    padding-left: 12px;
+  }
+
+  .group-block + .group-block{
+    margin-top: 22px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line-soft);
+  }
+  .group-label{
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+
+  .options{
+    display:flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+  .opt-btn{
+    text-align:left;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 14px;
+    cursor: pointer;
+    font-family: var(--sans);
+    display:flex;
+    flex-direction: column;
+    gap: 2px;
+    transition: border-color .12s ease, background .12s ease;
+  }
+  .opt-btn:hover{ background: var(--accent-soft); border-color: var(--accent); }
+  .opt-btn.selected{ background: var(--accent-soft); border-color: var(--accent); border-left-color: var(--accent); }
+  .opt-btn .opt-label{
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .opt-btn .opt-desc{
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.4;
+  }
+  .opt-btn.sev-0{ border-left-color: var(--brick); }
+  .opt-btn.sev-1{ border-left-color: var(--amber); }
+
+  .binary-row{
+    display:flex;
+    gap: 9px;
+  }
+  .binary-row .opt-btn{ flex:1; }
+
+  .flow-actions{
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    margin-top: 20px;
+  }
+  .link-btn{
+    background:none;
+    border:none;
+    color: var(--ink-soft);
+    font-family: var(--sans);
+    font-size: 14px;
+    cursor:pointer;
+    padding: 8px 4px;
+  }
+  .link-btn:hover{ color: var(--ink); }
+  .primary-btn{
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 11px 20px;
+    font-family: var(--sans);
+    font-size: 14.5px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .primary-btn:disabled{
+    background: var(--line);
+    cursor: not-allowed;
+  }
+  .primary-btn:not(:disabled):hover{ opacity: 0.92; }
+
+  /* ---------- Results ---------- */
+  .results-card{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 30px 28px;
+  }
+  .results-card h2{
+    font-family: var(--serif);
+    font-size: 21px;
+    font-weight: 500;
+    margin: 0 0 20px 0;
+  }
+  .score-row{
+    display:flex;
+    align-items:baseline;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .score-row .big{
+    font-family: var(--serif);
+    font-size: 44px;
+    color: var(--amber);
+    line-height:1;
+  }
+  .score-row .of{
+    font-size: 16px;
+    color: var(--ink-soft);
+  }
+  .score-row .sub-label{
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-right: auto;
+  }
+  .subtotals{
+    display:flex;
+    gap: 22px;
+    margin: 18px 0 6px 0;
+    padding: 16px 0;
+    border-top: 1px solid var(--line-soft);
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .subtotal-item .n{
+    font-family: var(--serif);
+    font-size: 24px;
+    color: var(--ink);
+  }
+  .subtotal-item .l{
+    font-size: 12.5px;
+    color: var(--ink-soft);
+  }
+  .note-box{
+    background: var(--amber-soft);
+    border: 1px solid var(--amber);
+    border-radius: 8px;
+    padding: 13px 15px;
+    font-size: 13.5px;
+    color: var(--ink);
+    line-height: 1.5;
+    margin-top: 18px;
+  }
+  .item-breakdown{
+    margin-top: 20px;
+  }
+  .item-breakdown summary{
+    cursor:pointer;
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+  }
+  .item-row{
+    display:flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--line-soft);
+    font-size: 13.5px;
+  }
+  .item-row .name{ color: var(--ink); }
+  .item-row .val{ color: var(--ink-soft); white-space: nowrap; }
+  .results-actions{
+    display:flex;
+    gap: 10px;
+    margin-top: 24px;
+  }
+  .ghost-btn{
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-family: var(--sans);
+    font-size: 14px;
+    cursor: pointer;
+    color: var(--ink);
+  }
+  .ghost-btn:hover{ border-color: var(--accent); color: var(--accent); }
+
+  /* ---------- Paciente / Histórico ---------- */
+  .patient-box{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 22px;
+  }
+  .patient-fields-row{
+    display:flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .patient-field{
+    flex: 1;
+    min-width: 200px;
+  }
+  .patient-field-cpf{
+    flex: 0 0 200px;
+  }
+  .patient-label{
+    display:block;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+  .patient-input-row{
+    display:flex;
+    gap: 10px;
+    align-items:center;
+  }
+  .patient-input{
+    width: 100%;
+    font-family: var(--sans);
+    font-size: 15px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--ink);
+    background: var(--bg);
+  }
+  .patient-input:focus{ outline: none; border-color: var(--accent); }
+  .patient-input.input-error{ border-color: var(--brick); }
+  .history-link{ white-space: nowrap; }
+  .patient-box-footer{
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    gap: 12px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .patient-hint{
+    font-size: 12.5px;
+    color: var(--ink-soft);
+  }
+  .history-filter-row{ margin-bottom: 16px; }
+  .history-card{ padding: 10px 0; }
+  .history-list{ display:flex; flex-direction:column; }
+  .history-item{
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    gap: 12px;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .history-item:last-child{ border-bottom:none; }
+  .history-item-main{ font-size: 14.5px; color: var(--ink); }
+  .history-item-main strong{ font-weight: 600; }
+  .history-item-meta{
+    font-size: 13px;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+  .history-empty{
+    padding: 20px 24px;
+    color: var(--ink-soft);
+    font-size: 14px;
+  }
+
+  @media (max-width: 520px){
+    .q-card{ padding: 20px 18px; }
+    .score-row .big{ font-size: 36px; }
+    .subtotals{ flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+/* ================= DADOS: DGI ================= */
+const DGI = {
+  key: 'dgi',
+  title: 'Índice de Marcha Dinâmica (DGI)',
+  meta: '8 itens · pontuação 0–3 por item · máximo 24',
+  desc: 'Avalia a capacidade de ajustar a marcha diante de exigências variáveis (velocidade, cabeça, obstáculos, degraus).',
+  maxScore: 24,
+  items: [
+    { name:'Marcha em superfície plana',
+      instructions:'Ande em sua velocidade normal, daqui até a próxima marca (6 metros).',
+      groups:[{ options:[
+        {label:'Normal', desc:'Anda 6 metros, sem dispositivos de auxílio, em boa velocidade, sem evidência de desequilíbrio, marcha em padrão normal.', value:3},
+        {label:'Comprometimento leve', desc:'Anda 6 metros, velocidade lenta, marcha com mínimos desvios, ou utiliza dispositivos de auxílio à marcha.', value:2},
+        {label:'Comprometimento moderado', desc:'Anda 6 metros, velocidade lenta, marcha em padrão anormal, evidência de desequilíbrio.', value:1},
+        {label:'Comprometimento grave', desc:'Não consegue andar 6 metros sem auxílio, grandes desvios da marcha ou desequilíbrio.', value:0},
+      ]}]},
+    { name:'Mudança de velocidade da marcha',
+      instructions:'Ande no seu passo normal (1,5 metros). Quando eu falar "rápido", ande o mais rápido que puder (1,5 metros). Quando eu falar "devagar", ande o mais devagar que puder (1,5 metros).',
+      groups:[{ options:[
+        {label:'Normal', desc:'É capaz de alterar a velocidade da marcha sem perda de equilíbrio ou desvios. Mostra diferença significativa nas velocidades normal, rápido e devagar.', value:3},
+        {label:'Comprometimento leve', desc:'É capaz de mudar de velocidade mas apresenta discretos desvios da marcha, ou não consegue mudar significativamente a velocidade, ou utiliza um dispositivo de auxílio à marcha.', value:2},
+        {label:'Comprometimento moderado', desc:'Só realiza pequenos ajustes na velocidade da marcha, ou consegue mudar a velocidade com importantes desvios na marcha, ou muda de velocidade e perde o equilíbrio, mas consegue recuperá-lo e continuar andando.', value:1},
+        {label:'Comprometimento grave', desc:'Não consegue mudar de velocidade, ou perde o equilíbrio e procura apoio na parede, ou necessita ser amparado.', value:0},
+      ]}]},
+    { name:'Marcha com movimentos horizontais (rotação) da cabeça',
+      instructions:'Comece andando no seu passo normal. Quando eu disser "olhe para a direita", vire a cabeça para o lado direito e continue andando para frente até eu diga "olhe para a esquerda"; vire a cabeça para o lado esquerdo e continue andando. Quando eu disser "olhe para a frente", continue andando e volte a olhar para frente.',
+      groups:[{ options:[
+        {label:'Normal', desc:'Realiza as rotações da cabeça suavemente, sem alteração da marcha.', value:3},
+        {label:'Comprometimento leve', desc:'Realiza as rotações da cabeça suavemente, com leve alteração da velocidade da marcha, ou seja, com mínima alteração da progressão da marcha, ou utiliza dispositivo de auxílio à marcha.', value:2},
+        {label:'Comprometimento moderado', desc:'Realiza as rotações da cabeça com moderada alteração da velocidade da marcha, diminui a velocidade, ou cambaleia mas recupera e consegue continuar a andar.', value:1},
+        {label:'Comprometimento grave', desc:'Realiza a tarefa com grave distúrbio da marcha, ou seja, cambaleando para fora do trajeto (cerca de 38cm), perde o equilíbrio, pára, procura apoio na parede, ou precisa ser amparado.', value:0},
+      ]}]},
+    { name:'Marcha com movimentos verticais (rotação) da cabeça',
+      instructions:'Comece andando no seu passo normal. Quando eu disser "olhe para cima", levante a cabeça e olhe para cima. Continue andando para frente até eu diga "olhe para baixo", então incline a cabeça para baixo e continue andando. Quando eu disser "olhe para frente", continue andando e volte a olhar para frente.',
+      groups:[{ options:[
+        {label:'Normal', desc:'Realiza as rotações da cabeça sem alteração da marcha.', value:3},
+        {label:'Comprometimento leve', desc:'Realiza a tarefa com leve alteração da velocidade da marcha, ou seja, com mínima alteração da progressão da marcha, ou utiliza dispositivo de auxílio à marcha.', value:2},
+        {label:'Comprometimento moderado', desc:'Realiza a tarefa com moderada alteração da marcha, diminui a velocidade, ou cambaleia mas consegue continuar a andar.', value:1},
+        {label:'Comprometimento grave', desc:'Realiza a tarefa com grave distúrbio da marcha, ou seja, cambaleando para fora do trajeto, perde o equilíbrio, pára, procura apoio na parede, ou precisa ser amparado.', value:0},
+      ]}]},
+    { name:'Marcha e giro sobre o próprio eixo corporal (pivô)',
+      instructions:'Comece andando no seu passo normal. Quando eu disser "vire-se e pare", vire-se o mais rápido que puder para a direção oposta e permaneça parado de frente para (este ponto) seu ponto de partida.',
+      groups:[{ options:[
+        {label:'Normal', desc:'Gira o corpo com segurança em até 3 segundos e pára rapidamente sem perder o equilíbrio.', value:3},
+        {label:'Comprometimento leve', desc:'Gira o corpo com segurança em um tempo maior que 3 segundos e pára sem perder o equilíbrio.', value:2},
+        {label:'Comprometimento moderado', desc:'Gira lentamente, precisa de vários passos pequenos até recuperar o equilíbrio após girar ou parar, ou precisa de dicas verbais.', value:1},
+        {label:'Comprometimento grave', desc:'Não consegue girar o corpo com segurança, perde o equilíbrio, precisa da ajuda para virar-se e para parar.', value:0},
+      ]}]},
+    { name:'Passar por cima de obstáculo',
+      instructions:'Comece andando no sua velocidade normal. Quando chegar à caixa de sapatos, passe por cima dela, não a contorne, e continue andando.',
+      groups:[{ options:[
+        {label:'Normal', desc:'É capaz de passar por cima da caixa sem alterar a velocidade da marcha, não há evidência de desequilíbrio.', value:3},
+        {label:'Comprometimento leve', desc:'É capaz de passar por cima da caixa, mas precisa diminuir a velocidade da marcha e ajustar os passos para ultrapassá-la com segurança.', value:2},
+        {label:'Comprometimento moderado', desc:'É capaz de passar por cima da caixa, mas precisa parar e depois transpor o obstáculo. Pode precisar de dicas verbais.', value:1},
+        {label:'Comprometimento grave', desc:'Não consegue realizar a tarefa sem ajuda.', value:0},
+      ]}]},
+    { name:'Contornar obstáculos',
+      instructions:'Comece andando na sua velocidade normal e contorne os cones. Quando chegar no primeiro cone (cerca de 1,8 metros), contorne-o pela direita, continue andando e passe pelo meio deles, ao chegar no segundo cone (cerca de 1,8 m depois do primeiro), contorne-o pela esquerda.',
+      groups:[{ options:[
+        {label:'Normal', desc:'É capaz de contornar os cones com segurança, sem alteração da velocidade da marcha. Não há evidência de desequilíbrio.', value:3},
+        {label:'Comprometimento leve', desc:'É capaz de contornar ambos os cones, mas precisa diminuir o ritmo da marcha e ajustar os passos para não bater nos cones.', value:2},
+        {label:'Comprometimento moderado', desc:'É capaz de contornar os cones sem bater neles, mas precisa diminuir significativamente a velocidade da marcha para realizar a tarefa, ou precisa de dicas verbais.', value:1},
+        {label:'Comprometimento grave', desc:'É incapaz de contornar os cones; bate em um deles ou em ambos, ou precisa ser amparado.', value:0},
+      ]}]},
+    { name:'Subir e descer degraus',
+      instructions:'Suba estas escadas como você faria em sua casa (ou seja, usando o corrimão, se necessário). Quando chegar ao topo, vire-se e desça.',
+      groups:[{ options:[
+        {label:'Normal', desc:'Alterna os pés, usa ou não usa o corrimão.', value:3},
+        {label:'Comprometimento leve', desc:'Alterna os pés, mas precisa usar o corrimão.', value:2},
+        {label:'Comprometimento moderado', desc:'Coloca os dois pés em cada degrau; precisa usar o corrimão.', value:1},
+        {label:'Comprometimento grave', desc:'Não consegue realizar a tarefa com segurança.', value:0},
+      ]}]},
+  ]
+};
+
+/* ================= DADOS: TINETTI / POMA-BRASIL ================= */
+const TINETTI = {
+  key:'tinetti',
+  title:'Escala de Equilíbrio e Marcha de Tinetti (POMA-Brasil)',
+  meta:'16 itens · equilíbrio /16 + marcha /12 · máximo 28',
+  desc:'Avalia condições de equilíbrio e marcha da pessoa idosa. Adaptada para a população brasileira (POMA-Brasil).',
+  maxScore: 28,
+  items:[
+    // ---- EQUILÍBRIO ----
+    { section:'equilibrio', name:'1. Equilíbrio sentado', instructions:'Pessoa sentada em uma cadeira sem braços.',
+      groups:[{ options:[
+        {label:'Escorrega', desc:'', value:0},
+        {label:'Equilibrado', desc:'', value:1},
+      ]}]},
+    { section:'equilibrio', name:'2. Levantar', instructions:'Peça para a pessoa se levantar da cadeira.',
+      groups:[{ options:[
+        {label:'Incapaz', desc:'', value:0},
+        {label:'Utiliza os braços como apoio', desc:'', value:1},
+        {label:'Levanta-se sem apoiar os braços', desc:'', value:2},
+      ]}]},
+    { section:'equilibrio', name:'3. Tentativas para levantar', instructions:'',
+      groups:[{ options:[
+        {label:'Incapaz', desc:'', value:0},
+        {label:'Mais de uma tentativa', desc:'', value:1},
+        {label:'Tentativa única', desc:'', value:2},
+      ]}]},
+    { section:'equilibrio', name:'4. Assim que levanta', instructions:'Primeiros 5 segundos após levantar-se.',
+      groups:[{ options:[
+        {label:'Desequilibrado', desc:'', value:0},
+        {label:'Estável, mas utiliza suporte', desc:'', value:1},
+        {label:'Estável sem suporte', desc:'', value:2},
+      ]}]},
+    { section:'equilibrio', name:'5. Equilíbrio em pé', instructions:'',
+      groups:[{ options:[
+        {label:'Desequilibrado', desc:'', value:0},
+        {label:'Com suporte ou pés afastados (base de sustentação) > 12 cm', desc:'', value:1},
+        {label:'Sem suporte e com base estreita', desc:'', value:2},
+      ]}]},
+    { section:'equilibrio', name:'6. Teste dos três tempos', instructions:'O examinador empurra levemente o esterno da pessoa, que deve estar com os pés juntos.',
+      groups:[{ options:[
+        {label:'Começa a cair', desc:'', value:0},
+        {label:'Agarra ou balança os braços', desc:'', value:1},
+        {label:'Equilibrado', desc:'', value:2},
+      ]}]},
+    { section:'equilibrio', name:'7. Olhos fechados', instructions:'Pessoa em pé, com os pés juntos e olhos fechados.',
+      groups:[{ options:[
+        {label:'Desequilibrado, instável', desc:'', value:0},
+        {label:'Equilibrado', desc:'', value:1},
+      ]}]},
+    { section:'equilibrio', name:'8. Girando 360º', instructions:'',
+      groups:[{ options:[
+        {label:'Passos descontínuos', desc:'', value:0},
+        {label:'Instável (desequilíbrios)', desc:'', value:1},
+        {label:'Estável (equilibrado)', desc:'', value:2},
+      ]}]},
+    { section:'equilibrio', name:'9. Sentando', instructions:'',
+      groups:[{ options:[
+        {label:'Inseguro (erra a distância, cai na cadeira)', desc:'', value:0},
+        {label:'Utiliza os braços ou movimentação abrupta', desc:'', value:1},
+        {label:'Seguro, movimentação suave', desc:'', value:2},
+      ]}]},
+    // ---- MARCHA ----
+    { section:'marcha', name:'10. Início da marcha', instructions:'Pessoa em pé caminha pelo corredor ou sala, primeiro no ritmo usual.',
+      groups:[{ options:[
+        {label:'Hesitação ou várias tentativas para iniciar', desc:'', value:0},
+        {label:'Sem hesitação', desc:'', value:1},
+      ]}]},
+    { section:'marcha', name:'11. Comprimento e altura dos passos', instructions:'Observe cada pé separadamente.',
+      groups:[
+        { label:'Pé direito — em relação ao pé esquerdo', options:[
+          {label:'Não ultrapassa o pé esquerdo', desc:'', value:0},
+          {label:'Ultrapassa o pé esquerdo', desc:'', value:1},
+        ]},
+        { label:'Pé direito — saída do chão', options:[
+          {label:'Não sai completamente do chão', desc:'', value:0},
+          {label:'Sai completamente do chão', desc:'', value:1},
+        ]},
+        { label:'Pé esquerdo — em relação ao pé direito', options:[
+          {label:'Não ultrapassa o pé direito', desc:'', value:0},
+          {label:'Ultrapassa o pé direito', desc:'', value:1},
+        ]},
+        { label:'Pé esquerdo — saída do chão', options:[
+          {label:'Não sai completamente do chão', desc:'', value:0},
+          {label:'Sai completamente do chão', desc:'', value:1},
+        ]},
+      ]},
+    { section:'marcha', name:'12. Simetria dos passos', instructions:'',
+      groups:[{ options:[
+        {label:'Passos diferentes (direito e esquerdo)', desc:'', value:0},
+        {label:'Passos semelhantes', desc:'', value:1},
+      ]}]},
+    { section:'marcha', name:'13. Continuidade dos passos', instructions:'',
+      groups:[{ options:[
+        {label:'Paradas ou passos descontínuos', desc:'', value:0},
+        {label:'Passos contínuos', desc:'', value:1},
+      ]}]},
+    { section:'marcha', name:'14. Direção', instructions:'Observe o trajeto em relação a uma linha reta no chão.',
+      groups:[{ options:[
+        {label:'Desvio nítido', desc:'', value:0},
+        {label:'Desvio leve ou moderado, ou uso de apoio', desc:'', value:1},
+        {label:'Linha reta, sem apoio (bengala ou andador)', desc:'', value:2},
+      ]}]},
+    { section:'marcha', name:'15. Tronco', instructions:'',
+      groups:[{ options:[
+        {label:'Balanço grave ou uso de apoio', desc:'', value:0},
+        {label:'Flexão dos joelhos ou do dorso, ou abertura dos braços ao andar', desc:'', value:1},
+        {label:'Sem flexão, sem balanço, não usa os braços nem apoio', desc:'', value:2},
+      ]}]},
+    { section:'marcha', name:'16. Distância dos tornozelos', instructions:'',
+      groups:[{ options:[
+        {label:'Tornozelos separados', desc:'', value:0},
+        {label:'Tornozelos quase se tocam enquanto anda', desc:'', value:1},
+      ]}]},
+  ]
+};
+
+/* ================= DADOS: BERG ================= */
+const BERG = {
+  key:'berg',
+  title:'Escala de Equilíbrio de Berg (EEB)',
+  meta:'14 itens · pontuação 0–4 por item · máximo 56',
+  desc:'Avalia o equilíbrio estático e dinâmico por meio de 14 tarefas funcionais do dia a dia.',
+  maxScore: 56,
+  items:[
+    { name:'1. Posição sentada para posição em pé', instructions:'Por favor, levante-se. Tente não usar suas mãos para se apoiar.',
+      groups:[{ options:[
+        {label:'4', desc:'Capaz de levantar-se sem utilizar as mãos e estabilizar-se independentemente.', value:4},
+        {label:'3', desc:'Capaz de levantar-se independentemente utilizando as mãos.', value:3},
+        {label:'2', desc:'Capaz de levantar-se utilizando as mãos após diversas tentativas.', value:2},
+        {label:'1', desc:'Necessita de ajuda mínima para levantar-se ou estabilizar-se.', value:1},
+        {label:'0', desc:'Necessita de ajuda moderada ou máxima para levantar-se.', value:0},
+      ]}]},
+    { name:'2. Permanecer em pé sem apoio', instructions:'Por favor, fique em pé por 2 minutos sem se apoiar.',
+      groups:[{ options:[
+        {label:'4', desc:'Capaz de permanecer em pé com segurança por 2 minutos.', value:4},
+        {label:'3', desc:'Capaz de permanecer em pé por 2 minutos com supervisão.', value:3},
+        {label:'2', desc:'Capaz de permanecer em pé por 30 segundos sem apoio.', value:2},
+        {label:'1', desc:'Necessita de várias tentativas para permanecer em pé por 30 segundos sem apoio.', value:1},
+        {label:'0', desc:'Incapaz de permanecer em pé por 30 segundos sem apoio.', value:0},
+      ]}]},
+    { name:'3. Permanecer sentado sem apoio nas costas', instructions:'Com os pés apoiados no chão ou num banquinho, por favor, fique sentado com os braços cruzados por 2 minutos.',
+      groups:[{ options:[
+        {label:'4', desc:'Capaz de permanecer sentado com segurança e com firmeza por 2 minutos.', value:4},
+        {label:'3', desc:'Capaz de permanecer sentado por 2 minutos sob supervisão.', value:3},
+        {label:'2', desc:'Capaz de permanecer sentado por 30 segundos.', value:2},
+        {label:'1', desc:'Capaz de permanecer sentado por 10 segundos.', value:1},
+        {label:'0', desc:'Incapaz de permanecer sentado sem apoio durante 10 segundos.', value:0},
+      ]}]},
+    { name:'4. Posição em pé para posição sentada', instructions:'Por favor, sente-se.',
+      groups:[{ options:[
+        {label:'4', desc:'Senta-se com segurança com uso mínimo das mãos.', value:4},
+        {label:'3', desc:'Controla a descida utilizando as mãos.', value:3},
+        {label:'2', desc:'Utiliza a parte posterior das pernas contra a cadeira para controlar a descida.', value:2},
+        {label:'1', desc:'Senta-se independentemente, mas tem descida sem controle.', value:1},
+        {label:'0', desc:'Necessita de ajuda para sentar-se.', value:0},
+      ]}]},
+    { name:'5. Transferências', instructions:'Arrume as cadeiras perpendicularmente ou uma de frente para a outra para uma transferência em pivô. Peça para se transferir de uma cadeira com apoio de braço para uma sem apoio, e vice-versa.',
+      groups:[{ options:[
+        {label:'4', desc:'Capaz de transferir-se com segurança com uso mínimo das mãos.', value:4},
+        {label:'3', desc:'Capaz de transferir-se com segurança com uso das mãos.', value:3},
+        {label:'2', desc:'Capaz de transferir-se seguindo orientações verbais e/ou supervisão.', value:2},
+        {label:'1', desc:'Necessita de uma pessoa para ajudar.', value:1},
+        {label:'0', desc:'Necessita de duas pessoas para ajudar ou supervisionar a tarefa com segurança.', value:0},
+      ]}]},
+    { name:'6. Permanecer em pé sem apoio com os olhos fechados', instructions:'Por favor, fique em pé e feche os olhos por 10 segundos.',
+      groups:[{ options:[
+        {label:'4', desc:'Capaz de permanecer em pé por 10 segundos com segurança.', value:4},
+        {label:'3', desc:'Capaz de permanecer em pé por 10 segundos com supervisão.', value:3},
+        {label:'2', desc:'Capaz de permanecer em pé por 3 segundos.', value:2},
+        {label:'1', desc:'Incapaz de manter os olhos fechados durante 3 segundos, mas mantém-se em pé.', value:1},
+        {label:'0', desc:'Necessita de ajuda para não cair.', value:0},
+      ]}]},
+    { name:'7. Permanecer em pé sem apoio com os pés juntos', instructions:'Junte seus pés e fique em pé sem se apoiar.',
+      groups:[{ options:[
+        {label:'4', desc:'Capaz de posicionar os pés juntos independentemente e permanecer por 1 minuto com segurança.', value:4},
+        {label:'3', desc:'Capaz de posicionar os pés juntos independentemente e permanecer por 1 minuto com supervisão.', value:3},
+        {label:'2', desc:'Capaz de posicionar os pés juntos independentemente e permanecer por 30 segundos.', value:2},
+        {label:'1', desc:'Necessita de ajuda para posicionar-se, mas é capaz de permanecer com os pés juntos durante 15 segundos.', value:1},
+        {label:'0', desc:'Necessita de ajuda para posicionar-se e é incapaz de permanecer nessa posição por 15 segundos.', value:0},
+      ]}]},
+    { name:'8. Alcançar a frente com o braço estendido permanecendo em pé', instructions:'Levante o braço a 90°, estenda os dedos e tente alcançar à frente o mais longe possível.',
+      groups:[{ options:[
+        {label:'4', desc:'Pode avançar à frente mais que 25 cm com segurança.', value:4},
+        {label:'3', desc:'Pode avançar à frente mais que 12,5 cm com segurança.', value:3},
+        {label:'2', desc:'Pode avançar à frente mais que 5 cm com segurança.', value:2},
+        {label:'1', desc:'Pode avançar à frente, mas necessita de supervisão.', value:1},
+        {label:'0', desc:'Perde o equilíbrio na tentativa, ou necessita de apoio extra.', value:0},
+      ]}]},
+    { name:'9. Pegar um objeto do chão a partir de uma posição em pé', instructions:'Pegue o objeto (chinelo) que está na frente dos seus pés.',
+      groups:[{ options:[
+        {label:'4', desc:'Capaz de pegar o chinelo com facilidade e segurança.', value:4},
+        {label:'3', desc:'Capaz de pegar o chinelo, mas necessita de supervisão.', value:3},
+        {label:'2', desc:'Incapaz de pegá-lo, mas se estica até ficar a 2–5 cm do chinelo e mantém o equilíbrio independentemente.', value:2},
+        {label:'1', desc:'Incapaz de pegá-lo, necessita de supervisão enquanto está tentando.', value:1},
+        {label:'0', desc:'Incapaz de tentar, ou necessita de ajuda para não perder o equilíbrio ou cair.', value:0},
+      ]}]},
+    { name:'10. Virar-se e olhar para trás', instructions:'Vire-se para olhar diretamente atrás de você por cima do ombro esquerdo, sem tirar os pés do chão. Repita para o ombro direito.',
+      groups:[{ options:[
+        {label:'4', desc:'Olha para trás de ambos os lados com uma boa distribuição do peso.', value:4},
+        {label:'3', desc:'Olha para trás somente de um lado, o lado contrário demonstra menos distribuição do peso.', value:3},
+        {label:'2', desc:'Vira somente para os lados, mas mantém o equilíbrio.', value:2},
+        {label:'1', desc:'Necessita de supervisão para virar.', value:1},
+        {label:'0', desc:'Necessita de ajuda para não perder o equilíbrio ou cair.', value:0},
+      ]}]},
+    { name:'11. Girar 360 graus', instructions:'Gire completamente ao seu redor. Pausa. Gire completamente na direção contrária.',
+      groups:[{ options:[
+        {label:'4', desc:'Capaz de girar 360° com segurança em 4 segundos ou menos.', value:4},
+        {label:'3', desc:'Capaz de girar 360° com segurança somente para um lado em 4 segundos ou menos.', value:3},
+        {label:'2', desc:'Capaz de girar 360° com segurança, mas lentamente.', value:2},
+        {label:'1', desc:'Necessita de supervisão próxima ou orientações verbais.', value:1},
+        {label:'0', desc:'Necessita de ajuda enquanto gira.', value:0},
+      ]}]},
+    { name:'12. Posicionar os pés alternadamente no degrau/banquinho', instructions:'Permanecendo em pé sem apoio, toque cada pé alternadamente no degrau/banquinho. Continue até cada pé ter tocado 4 vezes.',
+      groups:[{ options:[
+        {label:'4', desc:'Capaz de permanecer em pé independentemente e com segurança, completando 8 movimentos em 20 segundos.', value:4},
+        {label:'3', desc:'Capaz de permanecer em pé independentemente e completar 8 movimentos em mais de 20 segundos.', value:3},
+        {label:'2', desc:'Capaz de completar 4 movimentos sem ajuda.', value:2},
+        {label:'1', desc:'Capaz de completar mais de 2 movimentos com o mínimo de ajuda.', value:1},
+        {label:'0', desc:'Incapaz de tentar, ou necessita de ajuda para não cair.', value:0},
+      ]}]},
+    { name:'13. Permanecer em pé sem apoio com um pé à frente', instructions:'Demonstre o movimento. Coloque um pé diretamente à frente do outro.',
+      groups:[{ options:[
+        {label:'4', desc:'Capaz de colocar um pé imediatamente à frente do outro, independentemente, e permanece por 30 segundos.', value:4},
+        {label:'3', desc:'Capaz de colocar um pé um pouco mais à frente do outro e levemente para o lado, independentemente, e permanece por 30 segundos.', value:3},
+        {label:'2', desc:'Capaz de dar um pequeno passo, independentemente, e permanece por 30 segundos.', value:2},
+        {label:'1', desc:'Necessita de ajuda para dar o passo, porém permanece por 15 segundos.', value:1},
+        {label:'0', desc:'Perde o equilíbrio ao tentar dar um passo ou ao ficar em pé.', value:0},
+      ]}]},
+    { name:'14. Permanecer em pé sobre uma perna', instructions:'Fique em pé sobre uma perna o máximo que puder, sem se segurar.',
+      groups:[{ options:[
+        {label:'4', desc:'Capaz de levantar uma perna independentemente e permanecer por mais de 10 segundos.', value:4},
+        {label:'3', desc:'Capaz de levantar uma perna independentemente e permanecer por 5–10 segundos.', value:3},
+        {label:'2', desc:'Capaz de levantar uma perna independentemente e permanecer por 3 segundos ou mais.', value:2},
+        {label:'1', desc:'Tenta levantar uma perna, é incapaz de permanecer por 3 segundos, mas permanece em pé independentemente.', value:1},
+        {label:'0', desc:'Incapaz de tentar, ou necessita de ajuda para não cair.', value:0},
+      ]}]},
+  ]
+};
+
+const SCALES = { dgi: DGI, tinetti: TINETTI, berg: BERG };
+
+/* ================= ESTADO ================= */
+let state = {
+  screen: 'home',      // 'home' | 'flow' | 'results' | 'history'
+  scaleKey: null,
+  itemIndex: 0,
+  answers: [],          // por item: array de valores escolhidos por grupo (ou null)
+  patientName: '',
+  patientCpf: '',
+  historyFilter: '',
+  resultsSaved: false,
+};
+
+function resetFlow(scaleKey){
+  const scale = SCALES[scaleKey];
+  state.screen = 'flow';
+  state.scaleKey = scaleKey;
+  state.itemIndex = 0;
+  state.answers = scale.items.map(it => it.groups.map(() => null));
+  state.resultsSaved = false;
+}
+
+function maskCPF(value){
+  const digits = String(value || '').replace(/\D/g, '').slice(0, 11);
+  if (digits.length > 9) return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+  if (digits.length > 6) return digits.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+  if (digits.length > 3) return digits.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+  return digits;
+}
+
+function requirePatientInfo(){
+  const name = (state.patientName || '').trim();
+  const cpfDigits = (state.patientCpf || '').replace(/\D/g, '');
+  let ok = true;
+
+  if (!name) {
+    const input = document.getElementById('patientNameInput');
+    if (input) { input.classList.add('input-error'); input.focus(); }
+    ok = false;
+  }
+  if (cpfDigits.length !== 11) {
+    const cpfInput = document.getElementById('patientCpfInput');
+    if (cpfInput) { cpfInput.classList.add('input-error'); if (ok) cpfInput.focus(); }
+    ok = false;
+  }
+  return ok;
+}
+
+function goHome(){
+  state.screen = 'home';
+  state.scaleKey = null;
+  render();
+}
+
+function currentScale(){ return SCALES[state.scaleKey]; }
+
+function selectOption(groupIdx, optIdx){
+  const scale = currentScale();
+  const item = scale.items[state.itemIndex];
+  state.answers[state.itemIndex][groupIdx] = item.groups[groupIdx].options[optIdx].value;
+
+  const allAnswered = state.answers[state.itemIndex].every(v => v !== null);
+  const singleGroup = item.groups.length === 1;
+
+  if (singleGroup && allAnswered) {
+    advance();
+  } else {
+    render();
+  }
+}
+
+function advance(){
+  const scale = currentScale();
+  if (state.itemIndex < scale.items.length - 1) {
+    state.itemIndex += 1;
+    render();
+  } else {
+    state.screen = 'results';
+    render();
+  }
+}
+
+function goBackItem(){
+  if (state.itemIndex > 0) {
+    state.itemIndex -= 1;
+    render();
+  } else {
+    goHome();
+  }
+}
+
+/* ================= RENDER ================= */
+function render(){
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+  if (state.screen === 'home') app.appendChild(renderHome());
+  else if (state.screen === 'flow') app.appendChild(renderFlow());
+  else if (state.screen === 'results') app.appendChild(renderResults());
+  else if (state.screen === 'history') app.appendChild(renderHistory());
+}
+
+function el(tag, cls, html){
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (html !== undefined) e.innerHTML = html;
+  return e;
+}
+
+function renderHome(){
+  const wrap = el('div');
+  const head = el('div', 'home-head');
+  head.appendChild(el('h1', null, 'Avaliação de marcha e equilíbrio'));
+  head.appendChild(el('p', null, 'Escolha o instrumento. As perguntas aparecem uma de cada vez e a pontuação é calculada automaticamente ao final.'));
+  wrap.appendChild(head);
+
+  const patientBox = el('div', 'patient-box');
+
+  const fieldsRow = el('div', 'patient-fields-row');
+
+  const nameField = el('div', 'patient-field');
+  const nameLabel = document.createElement('label');
+  nameLabel.className = 'patient-label';
+  nameLabel.htmlFor = 'patientNameInput';
+  nameLabel.textContent = 'Nome do paciente';
+  nameField.appendChild(nameLabel);
+  const nameInput = document.createElement('input');
+  nameInput.type = 'text';
+  nameInput.id = 'patientNameInput';
+  nameInput.className = 'patient-input';
+  nameInput.placeholder = 'Nome completo';
+  nameInput.value = state.patientName || '';
+  nameInput.oninput = (e) => {
+    state.patientName = e.target.value;
+    nameInput.classList.remove('input-error');
+  };
+  nameField.appendChild(nameInput);
+  fieldsRow.appendChild(nameField);
+
+  const cpfField = el('div', 'patient-field patient-field-cpf');
+  const cpfLabel = document.createElement('label');
+  cpfLabel.className = 'patient-label';
+  cpfLabel.htmlFor = 'patientCpfInput';
+  cpfLabel.textContent = 'CPF';
+  cpfField.appendChild(cpfLabel);
+  const cpfInput = document.createElement('input');
+  cpfInput.type = 'text';
+  cpfInput.id = 'patientCpfInput';
+  cpfInput.className = 'patient-input';
+  cpfInput.placeholder = '000.000.000-00';
+  cpfInput.inputMode = 'numeric';
+  cpfInput.maxLength = 14;
+  cpfInput.value = state.patientCpf || '';
+  cpfInput.oninput = (e) => {
+    const masked = maskCPF(e.target.value);
+    e.target.value = masked;
+    state.patientCpf = masked;
+    cpfInput.classList.remove('input-error');
+  };
+  cpfField.appendChild(cpfInput);
+  fieldsRow.appendChild(cpfField);
+
+  patientBox.appendChild(fieldsRow);
+
+  const footer = el('div', 'patient-box-footer');
+  footer.appendChild(el('div', 'patient-hint', 'Nome e CPF identificam o paciente no histórico (evita confundir pacientes com nomes parecidos).'));
+  const histBtn = el('button', 'link-btn history-link', 'Ver histórico');
+  histBtn.onclick = () => { state.screen = 'history'; render(); };
+  footer.appendChild(histBtn);
+  patientBox.appendChild(footer);
+
+  wrap.appendChild(patientBox);
+
+  const grid = el('div', 'scale-grid');
+
+  const dgiCard = el('button', 'scale-card');
+  dgiCard.appendChild(el('h2', null, DGI.title));
+  dgiCard.appendChild(el('div', 'meta', DGI.meta));
+  dgiCard.appendChild(el('div', 'desc', DGI.desc));
+  dgiCard.onclick = () => { if (!requirePatientInfo()) return; resetFlow('dgi'); render(); };
+  grid.appendChild(dgiCard);
+
+  const tinettiCard = el('button', 'scale-card');
+  tinettiCard.appendChild(el('h2', null, TINETTI.title));
+  tinettiCard.appendChild(el('div', 'meta', TINETTI.meta));
+  tinettiCard.appendChild(el('div', 'desc', TINETTI.desc));
+  tinettiCard.onclick = () => { if (!requirePatientInfo()) return; resetFlow('tinetti'); render(); };
+  grid.appendChild(tinettiCard);
+
+  const bergCard = el('button', 'scale-card');
+  bergCard.appendChild(el('h2', null, BERG.title));
+  bergCard.appendChild(el('div', 'meta', BERG.meta));
+  bergCard.appendChild(el('div', 'desc', BERG.desc));
+  bergCard.onclick = () => { if (!requirePatientInfo()) return; resetFlow('berg'); render(); };
+  grid.appendChild(bergCard);
+
+  wrap.appendChild(grid);
+  return wrap;
+}
+
+function renderFlow(){
+  const scale = currentScale();
+  const item = scale.items[state.itemIndex];
+  const wrap = el('div');
+
+  const top = el('div', 'flow-top');
+  top.appendChild(el('div', 'flow-title', scale.title));
+  top.appendChild(el('div', 'flow-count', `Item ${state.itemIndex + 1} de ${scale.items.length}`));
+  wrap.appendChild(top);
+
+  const track = el('div', 'progress-track');
+  const fill = el('div', 'progress-fill');
+  fill.style.width = `${((state.itemIndex) / scale.items.length) * 100}%`;
+  track.appendChild(fill);
+  wrap.appendChild(track);
+
+  const card = el('div', 'q-card');
+  if (item.section) {
+    const tag = item.section === 'equilibrio' ? 'EQUILÍBRIO' : 'MARCHA';
+    card.appendChild(el('div', 'q-section-tag', tag));
+  }
+  card.appendChild(el('div', 'q-name', item.name));
+  if (item.instructions) card.appendChild(el('div', 'q-instructions', item.instructions));
+
+  item.groups.forEach((group, gIdx) => {
+    const block = el('div', 'group-block');
+    if (group.label) block.appendChild(el('div', 'group-label', group.label));
+
+    const isBinary = group.options.length === 2;
+    const optsWrap = el('div', isBinary ? 'options binary-row' : 'options');
+
+    group.options.forEach((opt, oIdx) => {
+      const selectedVal = state.answers[state.itemIndex][gIdx];
+      const btn = el('button', 'opt-btn' +
+        (selectedVal === opt.value ? ' selected' : '') +
+        (opt.value === 0 ? ' sev-0' : (opt.value === 1 && group.options.length > 2 ? ' sev-1' : '')));
+      btn.appendChild(el('div', 'opt-label', opt.label));
+      if (opt.desc) btn.appendChild(el('div', 'opt-desc', opt.desc));
+      btn.onclick = () => selectOption(gIdx, oIdx);
+      optsWrap.appendChild(btn);
+    });
+    block.appendChild(optsWrap);
+    card.appendChild(block);
+  });
+
+  wrap.appendChild(card);
+
+  const actions = el('div', 'flow-actions');
+  const back = el('button', 'link-btn', state.itemIndex === 0 ? 'Voltar ao menu' : 'Item anterior');
+  back.onclick = goBackItem;
+  actions.appendChild(back);
+
+  if (item.groups.length > 1) {
+    const allAnswered = state.answers[state.itemIndex].every(v => v !== null);
+    const cont = el('button', 'primary-btn', state.itemIndex === scale.items.length - 1 ? 'Ver resultado' : 'Próximo item');
+    cont.disabled = !allAnswered;
+    cont.onclick = advance;
+    actions.appendChild(cont);
+  }
+
+  wrap.appendChild(actions);
+  return wrap;
+}
+
+function renderResults(){
+  const scale = currentScale();
+  const wrap = el('div');
+
+  const top = el('div', 'flow-top');
+  top.appendChild(el('div', 'flow-title', scale.title));
+  wrap.appendChild(top);
+
+  const card = el('div', 'results-card');
+  card.appendChild(el('h2', null, 'Resultado'));
+
+  const total = scale.items.reduce((sum, it, idx) =>
+    sum + state.answers[idx].reduce((s, v) => s + (v || 0), 0), 0);
+
+  const breakdown = scale.items.map((it, idx) => {
+    const itemScore = state.answers[idx].reduce((s, v) => s + (v || 0), 0);
+    const itemMax = it.groups.reduce((s, g) => s + Math.max(...g.options.map(o => o.value)), 0);
+    return { name: it.name, score: itemScore, max: itemMax };
+  });
+
+  if (!state.resultsSaved) {
+    state.resultsSaved = true;
+    const extra = {};
+    if (scale.key === 'tinetti') {
+      extra.subScores = {
+        equilibrio: scale.items.reduce((sum, it, idx) => it.section === 'equilibrio'
+          ? sum + state.answers[idx].reduce((s, v) => s + (v || 0), 0) : sum, 0),
+        marcha: scale.items.reduce((sum, it, idx) => it.section === 'marcha'
+          ? sum + state.answers[idx].reduce((s, v) => s + (v || 0), 0) : sum, 0),
+      };
+    }
+    saveAssessment(scale, total, scale.maxScore, breakdown, extra);
+  }
+
+  if (scale.key === 'tinetti') {
+    const eq = scale.items.reduce((sum, it, idx) => it.section === 'equilibrio'
+      ? sum + state.answers[idx].reduce((s, v) => s + (v || 0), 0) : sum, 0);
+    const ma = scale.items.reduce((sum, it, idx) => it.section === 'marcha'
+      ? sum + state.answers[idx].reduce((s, v) => s + (v || 0), 0) : sum, 0);
+
+    const subtotals = el('div', 'subtotals');
+    const s1 = el('div', 'subtotal-item');
+    s1.appendChild(el('div', 'n', `${eq}/16`));
+    s1.appendChild(el('div', 'l', 'Equilíbrio'));
+    const s2 = el('div', 'subtotal-item');
+    s2.appendChild(el('div', 'n', `${ma}/12`));
+    s2.appendChild(el('div', 'l', 'Marcha'));
+    subtotals.appendChild(s1);
+    subtotals.appendChild(s2);
+
+    const scoreRow = el('div', 'score-row');
+    scoreRow.appendChild(el('div', 'sub-label', 'Pontuação total'));
+    scoreRow.appendChild(el('div', 'big', total));
+    scoreRow.appendChild(el('div', 'of', '/ 28'));
+    card.appendChild(scoreRow);
+    card.appendChild(subtotals);
+
+    const note = el('div', 'note-box',
+      `Segundo o instrumento (Cadernos de Atenção Básica), quanto menor a pontuação, maior o comprometimento — escores abaixo de 19 indicam risco de queda cerca de 5 vezes maior. ${total < 19 ? 'O resultado desta avaliação está abaixo desse ponto de corte.' : 'O resultado desta avaliação está acima desse ponto de corte.'}`);
+    card.appendChild(note);
+  } else if (scale.key === 'berg') {
+    const scoreRow = el('div', 'score-row');
+    scoreRow.appendChild(el('div', 'sub-label', 'Pontuação total'));
+    scoreRow.appendChild(el('div', 'big', total));
+    scoreRow.appendChild(el('div', 'of', `/ ${scale.maxScore}`));
+    card.appendChild(scoreRow);
+
+    let faixa;
+    if (total >= 54) faixa = 'nenhuma limitação de equilíbrio (54–56)';
+    else if (total >= 43) faixa = 'limitação leve (43–53)';
+    else if (total >= 29) faixa = 'limitação moderada (29–42)';
+    else if (total >= 4) faixa = 'limitação grave (4–28)';
+    else faixa = 'limitação completa (0–3)';
+
+    const note = el('div', 'note-box',
+      `Pela classificação da escala (Miyamoto et al., 2004), esta pontuação corresponde a: ${faixa}.`);
+    card.appendChild(note);
+  } else {
+    const scoreRow = el('div', 'score-row');
+    scoreRow.appendChild(el('div', 'sub-label', 'Pontuação total'));
+    scoreRow.appendChild(el('div', 'big', total));
+    scoreRow.appendChild(el('div', 'of', `/ ${scale.maxScore}`));
+    card.appendChild(scoreRow);
+
+    const note = el('div', 'note-box',
+      'Quanto menor a pontuação, maior o comprometimento da marcha diante das exigências testadas (velocidade, movimentos de cabeça, obstáculos, giro e degraus).');
+    card.appendChild(note);
+  }
+
+  const details = el('details', 'item-breakdown');
+  details.appendChild(el('summary', null, 'Ver pontuação item a item'));
+  scale.items.forEach((it, idx) => {
+    const row = el('div', 'item-row');
+    const itemScore = state.answers[idx].reduce((s, v) => s + (v || 0), 0);
+    const itemMax = it.groups.reduce((s, g) => s + Math.max(...g.options.map(o => o.value)), 0);
+    row.appendChild(el('div', 'name', it.name));
+    row.appendChild(el('div', 'val', `${itemScore} / ${itemMax}`));
+    details.appendChild(row);
+  });
+  card.appendChild(details);
+
+  const actions = el('div', 'results-actions');
+  const restart = el('button', 'ghost-btn', 'Refazer esta escala');
+  restart.onclick = () => { resetFlow(scale.key); render(); };
+  const menu = el('button', 'ghost-btn', 'Escolher outra escala');
+  menu.onclick = goHome;
+  actions.appendChild(restart);
+  actions.appendChild(menu);
+  card.appendChild(actions);
+
+  wrap.appendChild(card);
+  return wrap;
+}
+
+/* ================= HISTÓRICO (persistência local) ================= */
+const STORAGE_KEY = 'avaliacaoMarchaEquilibrio_historico_v1';
+
+function loadAllAssessments(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return null; // localStorage indisponível/bloqueado
+  }
+}
+
+function saveAssessment(scale, total, maxScore, breakdown, extra){
+  const record = Object.assign({
+    id: 'a_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+    patientName: (state.patientName || '').trim() || 'Sem nome',
+    patientCpf: (state.patientCpf || '').trim(),
+    scaleKey: scale.key,
+    scaleTitle: scale.title,
+    total: total,
+    maxScore: maxScore,
+    timestamp: Date.now(),
+    breakdown: breakdown,
+  }, extra || {});
+
+  try {
+    const all = loadAllAssessments() || [];
+    all.push(record);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+  } catch (e) {
+    console.error('Não foi possível salvar no histórico local:', e);
+  }
+}
+
+let historyCache = [];
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, s => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[s]));
+}
+
+function renderHistory(){
+  const wrap = el('div');
+
+  const top = el('div', 'flow-top');
+  top.appendChild(el('div', 'flow-title', 'Histórico de avaliações'));
+  const back = el('button', 'link-btn', 'Voltar');
+  back.onclick = goHome;
+  top.appendChild(back);
+  wrap.appendChild(top);
+
+  const filterRow = el('div', 'history-filter-row');
+  const filterInput = document.createElement('input');
+  filterInput.type = 'text';
+  filterInput.className = 'patient-input';
+  filterInput.placeholder = 'Filtrar por nome ou CPF do paciente';
+  filterInput.value = state.historyFilter || '';
+  filterInput.oninput = (e) => {
+    state.historyFilter = e.target.value;
+    renderHistoryList(listEl);
+  };
+  filterRow.appendChild(filterInput);
+  wrap.appendChild(filterRow);
+
+  const card = el('div', 'results-card history-card');
+  const listEl = el('div', 'history-list');
+  card.appendChild(listEl);
+  wrap.appendChild(card);
+
+  const loaded = loadAllAssessments();
+  if (loaded === null) {
+    listEl.appendChild(el('div', 'history-empty', 'Este navegador bloqueou o armazenamento local — não é possível ler o histórico aqui.'));
+  } else {
+    historyCache = loaded.slice().sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    renderHistoryList(listEl);
+  }
+  return wrap;
+}
+
+function renderHistoryList(listEl){
+  listEl.innerHTML = '';
+  const filter = (state.historyFilter || '').trim().toLowerCase();
+  const filterDigits = filter.replace(/\D/g, '');
+
+  const items = historyCache.filter(r => {
+    if (!filter) return true;
+    const nameMatch = String(r.patientName || '').toLowerCase().includes(filter);
+    const cpfMatch = filterDigits && String(r.patientCpf || '').replace(/\D/g, '').includes(filterDigits);
+    return nameMatch || cpfMatch;
+  });
+
+  if (items.length === 0) {
+    listEl.appendChild(el('div', 'history-empty', historyCache.length === 0
+      ? 'Nenhuma avaliação salva ainda neste navegador.'
+      : 'Nenhuma avaliação encontrada para esse nome ou CPF.'));
+    return;
+  }
+
+  items.forEach(r => {
+    const row = el('div', 'history-item');
+    const date = r.timestamp ? new Date(r.timestamp).toLocaleDateString('pt-BR') : '';
+    row.appendChild(el('div', 'history-item-main',
+      `<strong>${escapeHtml(r.patientName || 'Sem nome')}</strong> — CPF ${escapeHtml(r.patientCpf || '—')} · ${escapeHtml(r.scaleTitle || '')}`));
+    row.appendChild(el('div', 'history-item-meta', `${date} · ${r.total}/${r.maxScore}`));
+    listEl.appendChild(row);
+  });
+}
+
+render();
+</script>
+</body>
+</html>

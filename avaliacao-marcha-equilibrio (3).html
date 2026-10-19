@@ -422,6 +422,25 @@
     color: var(--ink-soft);
     font-size: 14px;
   }
+  .field-error{
+    display:none;
+    color: var(--brick);
+    font-size: 12px;
+    margin-top: 6px;
+  }
+  .field-error.show{ display:block; }
+  .history-actions{
+    display:flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .history-status{
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 12px;
+    min-height: 1em;
+  }
 
   @media (max-width: 520px){
     .q-card{ padding: 20px 18px; }
@@ -779,9 +798,20 @@ function maskCPF(value){
   return digits;
 }
 
+function isValidCPF(value){
+  const d = String(value || '').replace(/\D/g, '');
+  if (d.length !== 11 || /^(\d)\1{10}$/.test(d)) return false;
+  const check = (len) => {
+    let sum = 0;
+    for (let i = 0; i < len; i++) sum += parseInt(d[i], 10) * (len + 1 - i);
+    const r = (sum * 10) % 11;
+    return r === 10 ? 0 : r;
+  };
+  return check(9) === parseInt(d[9], 10) && check(10) === parseInt(d[10], 10);
+}
+
 function requirePatientInfo(){
   const name = (state.patientName || '').trim();
-  const cpfDigits = (state.patientCpf || '').replace(/\D/g, '');
   let ok = true;
 
   if (!name) {
@@ -789,9 +819,15 @@ function requirePatientInfo(){
     if (input) { input.classList.add('input-error'); input.focus(); }
     ok = false;
   }
-  if (cpfDigits.length !== 11) {
+  if (!isValidCPF(state.patientCpf)) {
     const cpfInput = document.getElementById('patientCpfInput');
+    const err = document.getElementById('cpfError');
+    const incomplete = (state.patientCpf || '').replace(/\D/g, '').length < 11;
     if (cpfInput) { cpfInput.classList.add('input-error'); if (ok) cpfInput.focus(); }
+    if (err) {
+      err.textContent = incomplete ? 'Digite o CPF completo.' : 'CPF inválido. Confira os números.';
+      err.classList.add('show');
+    }
     ok = false;
   }
   return ok;
@@ -901,19 +937,25 @@ function renderHome(){
   cpfInput.inputMode = 'numeric';
   cpfInput.maxLength = 14;
   cpfInput.value = state.patientCpf || '';
+  const cpfError = el('div', 'field-error', 'CPF inválido. Confira os números.');
+  cpfError.id = 'cpfError';
   cpfInput.oninput = (e) => {
     const masked = maskCPF(e.target.value);
     e.target.value = masked;
     state.patientCpf = masked;
-    cpfInput.classList.remove('input-error');
+    const bad = masked.replace(/\D/g, '').length === 11 && !isValidCPF(masked);
+    cpfInput.classList.toggle('input-error', bad);
+    cpfError.textContent = 'CPF inválido. Confira os números.';
+    cpfError.classList.toggle('show', bad);
   };
   cpfField.appendChild(cpfInput);
+  cpfField.appendChild(cpfError);
   fieldsRow.appendChild(cpfField);
 
   patientBox.appendChild(fieldsRow);
 
   const footer = el('div', 'patient-box-footer');
-  footer.appendChild(el('div', 'patient-hint', 'Nome e CPF identificam o paciente no histórico (evita confundir pacientes com nomes parecidos).'));
+  footer.appendChild(el('div', 'patient-hint', 'Nome e CPF identificam o paciente (o CPF é conferido pelos dígitos verificadores). No histórico ficam salvos só os 2 últimos dígitos.'));
   const histBtn = el('button', 'link-btn history-link', 'Ver histórico');
   histBtn.onclick = () => { state.screen = 'history'; render(); };
   footer.appendChild(histBtn);
@@ -1129,10 +1171,34 @@ function renderResults(){
 /* ================= HISTÓRICO (persistência local) ================= */
 const STORAGE_KEY = 'avaliacaoMarchaEquilibrio_historico_v1';
 
+function cpfFinalOf(r){
+  if (r && r.patientCpfFinal) return String(r.patientCpfFinal);
+  const d = String((r && r.patientCpf) || '').replace(/\D/g, '');
+  return d ? d.slice(-2) : '';
+}
+
+function cpfMasked(r){
+  const f = cpfFinalOf(r);
+  return f ? '***.***.***-' + f : '—';
+}
+
+function sanitizeRecord(r){
+  const out = Object.assign({}, r);
+  out.patientCpfFinal = cpfFinalOf(r);
+  delete out.patientCpf;
+  return out;
+}
+
 function loadAllAssessments(){
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const list = raw ? JSON.parse(raw) : [];
+    if (list.some(r => r && r.patientCpf)) {
+      const clean = list.map(sanitizeRecord);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(clean));
+      return clean;
+    }
+    return list;
   } catch (e) {
     return null; // localStorage indisponível/bloqueado
   }
@@ -1142,7 +1208,7 @@ function saveAssessment(scale, total, maxScore, breakdown, extra){
   const record = Object.assign({
     id: 'a_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
     patientName: (state.patientName || '').trim() || 'Sem nome',
-    patientCpf: (state.patientCpf || '').trim(),
+    patientCpfFinal: (state.patientCpf || '').replace(/\D/g, '').slice(-2),
     scaleKey: scale.key,
     scaleTitle: scale.title,
     total: total,
@@ -1166,6 +1232,78 @@ function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, s => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[s]));
 }
 
+/* ---------- exportar / importar (para compartilhar o histórico) ---------- */
+function downloadFile(filename, content, mime){
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function todayStamp(){
+  const d = new Date();
+  const p = n => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
+
+function exportHistoryJson(statusEl){
+  const all = loadAllAssessments();
+  if (!all || all.length === 0) { statusEl.textContent = 'Não há avaliações para exportar.'; return; }
+  const payload = {
+    versao: 1,
+    exportadoEm: new Date().toISOString(),
+    avaliacoes: all.map(sanitizeRecord),
+  };
+  downloadFile('historico-avaliacoes-' + todayStamp() + '.json', JSON.stringify(payload, null, 2), 'application/json');
+  statusEl.textContent = 'Arquivo .json gerado. Para ver em outro computador, use "Importar histórico" lá.';
+}
+
+function exportHistoryCsv(statusEl){
+  const all = loadAllAssessments();
+  if (!all || all.length === 0) { statusEl.textContent = 'Não há avaliações para exportar.'; return; }
+  const q = v => '"' + String(v === undefined || v === null ? '' : v).replace(/"/g, '""') + '"';
+  const p = n => String(n).padStart(2, '0');
+  const rows = [['Data', 'Hora', 'Paciente', 'CPF', 'Escala', 'Pontuação', 'Máximo']];
+  all.slice().sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0)).forEach(r => {
+    const d = new Date(r.timestamp || 0);
+    rows.push([
+      p(d.getDate()) + '/' + p(d.getMonth() + 1) + '/' + d.getFullYear(),
+      p(d.getHours()) + ':' + p(d.getMinutes()),
+      r.patientName, cpfMasked(r), r.scaleTitle, r.total, r.maxScore,
+    ]);
+  });
+  const csv = '\ufeff' + rows.map(row => row.map(q).join(';')).join('\r\n');
+  downloadFile('historico-avaliacoes-' + todayStamp() + '.csv', csv, 'text/csv;charset=utf-8');
+  statusEl.textContent = 'Planilha .csv gerada (abre direto no Excel).';
+}
+
+function importHistory(file, onDone){
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      const list = Array.isArray(data) ? data : data.avaliacoes;
+      if (!Array.isArray(list)) throw new Error('formato');
+      const current = loadAllAssessments() || [];
+      const ids = new Set(current.map(r => r.id));
+      let added = 0;
+      list.forEach(r => {
+        if (r && r.id && !ids.has(r.id)) { current.push(sanitizeRecord(r)); ids.add(r.id); added++; }
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
+      onDone(added + (added === 1 ? ' avaliação importada.' : ' avaliações importadas.'));
+    } catch (e) {
+      onDone('Não foi possível ler esse arquivo. Use um .json exportado por esta ferramenta.');
+    }
+  };
+  reader.readAsText(file);
+}
+
 function renderHistory(){
   const wrap = el('div');
 
@@ -1176,11 +1314,37 @@ function renderHistory(){
   top.appendChild(back);
   wrap.appendChild(top);
 
+  const statusEl = el('div', 'history-status', '');
+
+  const actions = el('div', 'history-actions');
+  const btnJson = el('button', 'ghost-btn', 'Exportar histórico (.json)');
+  btnJson.onclick = () => exportHistoryJson(statusEl);
+  actions.appendChild(btnJson);
+  const btnCsv = el('button', 'ghost-btn', 'Exportar planilha (.csv)');
+  btnCsv.onclick = () => exportHistoryCsv(statusEl);
+  actions.appendChild(btnCsv);
+  const btnImp = el('button', 'ghost-btn', 'Importar histórico');
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.id = 'importFileInput';
+  fileInput.accept = '.json,application/json';
+  fileInput.style.display = 'none';
+  fileInput.onchange = () => {
+    const f = fileInput.files && fileInput.files[0];
+    if (f) importHistory(f, (msg) => { statusEl.textContent = msg; refreshList(); });
+    fileInput.value = '';
+  };
+  btnImp.onclick = () => fileInput.click();
+  actions.appendChild(btnImp);
+  actions.appendChild(fileInput);
+  wrap.appendChild(actions);
+  wrap.appendChild(statusEl);
+
   const filterRow = el('div', 'history-filter-row');
   const filterInput = document.createElement('input');
   filterInput.type = 'text';
   filterInput.className = 'patient-input';
-  filterInput.placeholder = 'Filtrar por nome ou CPF do paciente';
+  filterInput.placeholder = 'Filtrar por nome ou final do CPF';
   filterInput.value = state.historyFilter || '';
   filterInput.oninput = (e) => {
     state.historyFilter = e.target.value;
@@ -1194,13 +1358,17 @@ function renderHistory(){
   card.appendChild(listEl);
   wrap.appendChild(card);
 
-  const loaded = loadAllAssessments();
-  if (loaded === null) {
-    listEl.appendChild(el('div', 'history-empty', 'Este navegador bloqueou o armazenamento local — não é possível ler o histórico aqui.'));
-  } else {
+  function refreshList(){
+    const loaded = loadAllAssessments();
+    if (loaded === null) {
+      listEl.innerHTML = '';
+      listEl.appendChild(el('div', 'history-empty', 'Este navegador bloqueou o armazenamento local — não é possível ler o histórico aqui.'));
+      return;
+    }
     historyCache = loaded.slice().sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
     renderHistoryList(listEl);
   }
+  refreshList();
   return wrap;
 }
 
@@ -1212,7 +1380,7 @@ function renderHistoryList(listEl){
   const items = historyCache.filter(r => {
     if (!filter) return true;
     const nameMatch = String(r.patientName || '').toLowerCase().includes(filter);
-    const cpfMatch = filterDigits && String(r.patientCpf || '').replace(/\D/g, '').includes(filterDigits);
+    const cpfMatch = filterDigits && cpfFinalOf(r).includes(filterDigits.slice(-2));
     return nameMatch || cpfMatch;
   });
 
@@ -1227,7 +1395,7 @@ function renderHistoryList(listEl){
     const row = el('div', 'history-item');
     const date = r.timestamp ? new Date(r.timestamp).toLocaleDateString('pt-BR') : '';
     row.appendChild(el('div', 'history-item-main',
-      `<strong>${escapeHtml(r.patientName || 'Sem nome')}</strong> — CPF ${escapeHtml(r.patientCpf || '—')} · ${escapeHtml(r.scaleTitle || '')}`));
+      `<strong>${escapeHtml(r.patientName || 'Sem nome')}</strong> — CPF ${escapeHtml(cpfMasked(r))} · ${escapeHtml(r.scaleTitle || '')}`));
     row.appendChild(el('div', 'history-item-meta', `${date} · ${r.total}/${r.maxScore}`));
     listEl.appendChild(row);
   });
